@@ -1,3 +1,11 @@
 Read the documentation in qemu-doc.html or on http://wiki.qemu.org
 
 - QEMU team
+
+- modify qga for support monitor disk info.
+
+> apt-get install libzip-dev libsdl1.2-dev  uml-utilities  dh-autoreconf  bridge-utils libpixman-1-dev
+> ./configure --target-list=x86_64-softmmu --prefix=/usr --localstatedir=/var --sysconfdir=/etc --enable-debug
+> make qemu-ga  # only make qemu-ga
+
+referernce from http://aspirer2004.blog.163.com/blog/static/1067647201352423628885/
