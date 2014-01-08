@@ -11,3 +11,7 @@ Read the documentation in qemu-doc.html or on http://wiki.qemu.org
 referernce from http://aspirer2004.blog.163.com/blog/static/1067647201352423628885/
 
 it already has one build  qemu-ga in this branch
+
+
+See diff:  
+git diff ceb535d0766ba585240ac350508389412492e855 50707e7ad930ee562a830fdb5d35fe597be88554
