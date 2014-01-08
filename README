@@ -9,3 +9,5 @@ Read the documentation in qemu-doc.html or on http://wiki.qemu.org
   make qemu-ga  # only make qemu-ga  
 
 referernce from http://aspirer2004.blog.163.com/blog/static/1067647201352423628885/
+
+it already has one build  qemu-ga in this branch
