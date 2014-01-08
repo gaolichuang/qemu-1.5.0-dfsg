@@ -21,7 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <inttypes.h>
+#include <stdlib.h>
 #include "qga/guest-agent-core.h"
 #include "qga-qmp-commands.h"
 #include "qapi/qmp/qerror.h"
@@ -1466,7 +1468,71 @@ void qmp_guest_fstrim(bool has_minimum, int64_t minimum, Error **err)
     error_set(err, QERR_UNSUPPORTED);
 }
 #endif
+GuestFileSystemStatistics *qmp_guest_get_statvfs(const char *path, Error **errp)
+{   
+    int ret;
+    GuestFileSystemStatistics *fs_stat;
+    struct statvfs *buf;
+    buf = g_malloc0(sizeof(struct statvfs));
 
+    ret = statvfs(path, buf);
+    if (ret < 0) {
+        error_setg_errno(errp, errno, "Failed to get statvfs");
+        return NULL;
+    }   
+
+    fs_stat = g_malloc0(sizeof(GuestFileSystemStatistics));
+    fs_stat->f_bsize = buf->f_bsize;
+    fs_stat->f_frsize = buf->f_frsize;
+    fs_stat->f_blocks = buf->f_blocks;
+    fs_stat->f_bfree = buf->f_bfree;
+    fs_stat->f_bavail = buf->f_bavail;
+    fs_stat->f_files = buf->f_files;
+    fs_stat->f_ffree = buf->f_ffree;
+    fs_stat->f_favail = buf->f_favail;
+    fs_stat->f_fsid = buf->f_fsid;
+    fs_stat->f_flag = buf->f_flag;
+    fs_stat->f_namemax = buf->f_namemax;
+    return fs_stat;
+}
+char *qmp_guest_get_realpath(const char *path, Error **errp)
+{
+    struct stat sb;
+    char *linkname;
+    ssize_t r;
+
+    if (path == NULL) {
+        error_setg_errno(errp, errno, "path is null");
+        return NULL;
+    }
+
+    if (lstat(path, &sb) == -1) {
+        error_setg_errno(errp, errno, "path is not a link");
+        return NULL;
+    }
+
+    linkname = malloc(sb.st_size +  1);
+    if (linkname == NULL) {
+        error_setg_errno(errp, errno, "insufficient memory");
+        return NULL;
+    }
+
+    r = readlink(path, linkname, sb.st_size + 1);
+
+    if (r < 0) {
+        error_setg_errno(errp, errno, "readlink error");
+        return NULL;
+    }
+
+    if (r > sb.st_size) {
+        error_setg_errno(errp, errno, "symlink increased in size "
+                    "between lstat() and readlink()");
+        return NULL;
+    }
+
+    linkname[sb.st_size] = '\0';  
+    return linkname;
+}  
 /* register init/cleanup routines for stateful command groups */
 void ga_command_state_init(GAState *s, GACommandState *cs)
 {
